@@ -1,0 +1,7 @@
+apiVersion: v2
+name: hashicorp-vault
+description: A Helm chart for hashicorp-vault
+
+type: application
+version: 0.1.0
+AppVersion: "1.16.0"

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-publisher-job-decryption-only-policy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ include "vault.chart" . }}
+    app.kubernetes.io/name: {{ include "vault.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  user-publisher-job-decryption-only-policy.json: >-
+    {
+      "policy": "path \"transit/decrypt/registry-regulation-management-encryption-key\" {\n capabilities = [ \"update\" ]\n}"}"
+    }

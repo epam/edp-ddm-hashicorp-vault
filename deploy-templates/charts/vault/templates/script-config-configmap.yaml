@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: script-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ include "vault.chart" . }}
+    app.kubernetes.io/name: {{ include "vault.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  script-config.sh: |-
+    #!/bin/sh
+
+    vault_url=http://hashicorp-vault:8200
+
+    #policy fo keys
+    curl \
+       --header "X-Vault-Token: $VAULT_ROOT_TOKEN" \
+       --request PUT \
+       --data @/cfg/keys-policy/keys-policy.json \
+       $vault_url/v1/sys/policies/acl/keys
+    
+    curl \
+       --header "X-Vault-Token: $VAULT_ROOT_TOKEN" \
+       --request PUT \
+       --data @/cfg/registry-regulation-management-encryption-only-policy/registry-regulation-management-encryption-only-policy.json \
+       $vault_url/v1/sys/policies/acl/registry-regulation-management-encryption-only-policy
+    
+    curl \
+       --header "X-Vault-Token: $VAULT_ROOT_TOKEN" \
+       --request PUT \
+       --data @/cfg/user-publisher-job-decryption-only-policy/user-publisher-job-decryption-only-policy.json \
+       $vault_url/v1/sys/policies/acl/user-publisher-job-decryption-only-policy
+    
+    #vault auth enable kubernetes
+    curl \
+       --header "X-Vault-Token: $VAULT_ROOT_TOKEN" \
+       --request POST \
+       --data @/cfg/auth-method/auth-method.json \
+       $vault_url/v1/sys/auth/kubernetes
+    curl \
+       --header "X-Vault-Token: $VAULT_ROOT_TOKEN" \
+       --request POST \
+       --data @/cfg/auth-config/auth-config.json \
+       $vault_url/v1/auth/kubernetes/config
+
+    #role
+    curl \
+       --header "X-Vault-Token: $VAULT_ROOT_TOKEN" \
+       --request POST \
+       --data @/cfg/role/role.json \
+       $vault_url/v1/auth/kubernetes/role/sa-role
+    
+    curl \
+       --header "X-Vault-Token: $VAULT_ROOT_TOKEN" \
+       --request POST \
+       --data @/cfg/role/registry-regulation-management-encryption-only-role/registry-regulation-management-encryption-only-role.json \
+       $vault_url/v1/auth/kubernetes/role/registry-regulation-management-encryption-only-role
+    
+    curl \
+       --header "X-Vault-Token: $VAULT_ROOT_TOKEN" \
+       --request POST \
+       --data @/cfg/role/user-publisher-job-decryption-only-role/user-publisher-job-decryption-only-role.json \
+       $vault_url/v1/auth/kubernetes/role/user-publisher-job-decryption-only-role
+
+    #enable transit engine
+    curl \
+       --header "X-Vault-Token: $VAULT_ROOT_TOKEN" \
+       --request POST \
+       --data @/cfg/transit-engine/transit-engine.json \
+       $vault_url/v1/sys/mounts/transit
+
+
+    #key
+    curl \
+       --header "X-Vault-Token: $VAULT_ROOT_TOKEN" \
+       --request POST \
+       --data @/cfg/main-key/main-key.json \
+       $vault_url/v1/transit/keys/main-key
+    
+    curl \
+       --header "X-Vault-Token: $VAULT_ROOT_TOKEN" \
+       --request POST \
+       --data @/cfg/registry-regulation-management-encryption-key/registry-regulation-management-encryption-key.json \
+       $vault_url/v1/transit/keys/registry-regulation-management-encryption-key

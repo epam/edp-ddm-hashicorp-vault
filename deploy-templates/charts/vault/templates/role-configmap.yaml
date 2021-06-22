@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: role
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ include "vault.chart" . }}
+    app.kubernetes.io/name: {{ include "vault.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  role.json: >-
+    {
+      "bound_service_account_names": ["vault-auth", "keycloak"],
+      "bound_service_account_namespaces": "{{ .Release.Namespace }}",
+      "policies": ["keys"],
+      "ttl": "1h"
+    }

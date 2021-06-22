@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-publisher-job-decryption-only-role
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ include "vault.chart" . }}
+    app.kubernetes.io/name: {{ include "vault.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  user-publisher-job-decryption-only-role.json: >-
+    {
+      "bound_service_account_names": ["user-publisher"],
+      "bound_service_account_namespaces": "{{ .Release.Namespace }}",
+      "policies": ["user-publisher-job-decryption-only-policy"],
+      "ttl": "1h"
+    }

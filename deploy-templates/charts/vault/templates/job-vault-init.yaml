@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-tenant-init
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ include "vault.chart" . }}
+    app.kubernetes.io/name: {{ include "vault.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  template:
+    metadata:
+      name: vault-tenant-init
+    spec:
+      initContainers:
+        - name: vault-ready-8200
+          image: {{ template "imageRegistry" . -}} curlimages/curl
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - '-c'
+            - while ! nc -w 1 hashicorp-vault 8200 </dev/null; do echo waiting for vault ready; sleep 10; done;
+      containers:
+        - name: vault-tenant-init
+          image: {{ template "imageRegistry" . -}} dwdraju/alpine-curl-jq
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c", "/cfg/script/script-init.sh"]
+          volumeMounts:
+          - name: script
+            mountPath: "/cfg/script/"
+          - name: init-config
+            mountPath: "/cfg/init-config/"
+      volumes:
+      - name: script
+        configMap:
+          name: script-init
+          defaultMode: 0755
+      - name: init-config
+        configMap:
+          name: init-config
+      restartPolicy: Never
+      serviceAccountName: job-sa

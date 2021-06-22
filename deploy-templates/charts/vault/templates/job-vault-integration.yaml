@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-tenant-integration-{{ uuidv4 }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ include "vault.chart" . }}
+    app.kubernetes.io/name: {{ include "vault.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  template:
+    metadata:
+      name: vault-tenant-integration-{{ uuidv4 }}
+    spec:
+      initContainers:
+        - name: vault-ready-8201
+          image: {{ template "imageRegistry" . -}} curlimages/curl
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - '-c'
+            - while ! nc -w 1 hashicorp-vault 8201 </dev/null; do echo waiting for vault unseal; sleep 10; done;
+      containers:
+        - name: vault-tenant-integration
+          image: {{ template "imageRegistry" . -}} curlimages/curl
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: VAULT_ROOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: vault-root-token
+                  key: VAULT_ROOT_TOKEN
+          command: ["/bin/sh", "-c", "/cfg/script/script-config.sh"]
+          volumeMounts:
+            - name: script
+              mountPath: "/cfg/script/"
+            - name: secret-engine
+              mountPath: "/cfg/secret-engine/"
+      volumes:
+        - name: script
+          configMap:
+            name: script-config-integration
+            defaultMode: 0755
+        - name: secret-engine
+          configMap:
+            name: secret-engine
+      restartPolicy: Never
+      serviceAccountName: job-sa

@@ -1,0 +1,58 @@
+vault:
+ global:
+   openshift: true
+
+   agentImage:
+     repository: "hashicorp/vault"
+     tag: "1.9.7"
+
+   annotations:
+     sidecar.istio.io/inject: "false"
+
+ server:
+   dataStorage:
+     storageClass: ocs-storagecluster-ceph-rbd
+   auditStorage:
+     storageClass: ocs-storagecluster-ceph-rbd
+   authDelegator:
+     enabled: false
+   image:
+     repository: "hashicorp/vault"
+     tag: "1.9.7"
+   annotations:
+     sidecar.istio.io/inject: "false"
+     backup.velero.io/backup-volumes: data
+   route:
+     enabled: true
+   standalone:
+     config: |
+      ui = true
+
+      listener "tcp" {
+        tls_disable = 1
+        address = "[::]:8200"
+        cluster_address = "[::]:8201"
+      }
+      storage "file" {
+        path = "/vault/data"
+      }
+      seal "transit" {
+         address         = "{{ .Values.centralVaultUrl }}"
+         disable_renewal = "false"
+         key_name        = "autounseal"
+         mount_path      = "transit/"
+         tls_skip_verify = "true"
+      }
+
+ ui:
+   enabled: true
+ injector:
+   enabled: false
+   image:
+     repository: "hashicorp/vault-k8s"
+     tag: "0.10.2-ubi"
+
+ 
+ platformVaultToken: cy5jSWVJYzJlUUFGUVVwSTB5TGgwemt5YVM=
+ openshiftApiUrl: https://api.cicd2.mdtu-ddm.projects.epam.com:6443
+ centralVaultUrl: https://platform-vault-cicd2.mdtu-ddm.projects.epam.com:8200

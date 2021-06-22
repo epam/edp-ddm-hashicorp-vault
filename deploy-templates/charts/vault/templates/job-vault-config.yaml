@@ -1,0 +1,99 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-tenant-add-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ include "vault.chart" . }}
+    app.kubernetes.io/name: {{ include "vault.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  template:
+    metadata:
+      name: vault-tenant-add-config
+    spec:
+      initContainers:
+        - name: vault-ready-8201
+          image: {{ template "imageRegistry" . -}} curlimages/curl
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - '-c'
+            - while ! nc -w 1 hashicorp-vault 8201 </dev/null; do echo waiting for vault unseal; sleep 10; done;
+      containers:
+        - name: vault-tenant-add-config
+          image: {{ template "imageRegistry" . -}} curlimages/curl
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: VAULT_ROOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: vault-root-token
+                  key: VAULT_ROOT_TOKEN
+          command: ["/bin/sh", "-c", "/cfg/script/script-config.sh"]
+          volumeMounts:
+          - name: script
+            mountPath: "/cfg/script/"
+          - name: policy
+            mountPath: "/cfg/keys-policy/"
+          - name: registry-regulation-management-encryption-only-policy
+            mountPath: "/cfg/registry-regulation-management-encryption-only-policy/"
+          - name: user-publisher-job-decryption-only-policy
+            mountPath: "/cfg/user-publisher-job-decryption-only-policy/"
+          - name: auth-method
+            mountPath: "/cfg/auth-method/"
+          - name: auth-config
+            mountPath: "/cfg/auth-config/"
+          - name: role
+            mountPath: "/cfg/role/"
+          - name: registry-regulation-management-encryption-only-role
+            mountPath: "/cfg/role/registry-regulation-management-encryption-only-role/"
+          - name: user-publisher-job-decryption-only-role
+            mountPath: "/cfg/role/user-publisher-job-decryption-only-role/"
+          - name: transit-engine
+            mountPath: "/cfg/transit-engine/"
+          - name: key
+            mountPath: "/cfg/main-key/"
+          - name: registry-regulation-management-encryption-key
+            mountPath: "/cfg/registry-regulation-management-encryption-key/"
+      volumes:
+      - name: script
+        configMap:
+          name: script-config
+          defaultMode: 0755
+      - name: policy
+        configMap:
+          name: keys-policy
+      - name: registry-regulation-management-encryption-only-policy
+        configMap:
+          name: registry-regulation-management-encryption-only-policy
+      - name: user-publisher-job-decryption-only-policy
+        configMap:
+          name: user-publisher-job-decryption-only-policy
+      - name: auth-method
+        configMap:
+          name: auth-method
+      - name: auth-config
+        configMap:
+          name: auth-config
+      - name: role
+        configMap:
+          name: role
+      - name: registry-regulation-management-encryption-only-role
+        configMap:
+          name: registry-regulation-management-encryption-only-role
+      - name: user-publisher-job-decryption-only-role
+        configMap:
+          name: user-publisher-job-decryption-only-role
+      - name: transit-engine
+        configMap:
+          name: transit-engine
+      - name: key
+        configMap:
+          name: main-key
+      - name: registry-regulation-management-encryption-key
+        configMap:
+          name: registry-regulation-management-encryption-key
+      restartPolicy: Never
+      serviceAccountName: job-sa
