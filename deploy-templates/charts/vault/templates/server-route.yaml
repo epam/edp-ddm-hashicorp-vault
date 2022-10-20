@@ -1,6 +1,6 @@
 {{- if .Values.global.openshift }}
 {{- if ne .mode "external" }}
-{{- if .Values.server.route.enabled -}}
+{{- if and (.Values.server.route.enabled) (eq .Values.global.deploymentMode "development") -}}
 {{- $serviceName := include "vault.fullname" . -}}
 {{- if eq .mode "ha" }}
 {{- $serviceName = printf "%s-%s" $serviceName "active" -}}

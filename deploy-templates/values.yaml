@@ -1,3 +1,6 @@
+global:
+  deploymentMode: development
+
 vault:
  global:
    openshift: true
