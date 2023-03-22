@@ -29,6 +29,7 @@ spec:
         helm.sh/chart: {{ template "vault.chart" . }}
         app.kubernetes.io/name: {{ template "vault.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+        collect.logs: "plain-text"
         component: server
         {{- if  .Values.server.extraLabels -}}
           {{- toYaml .Values.server.extraLabels | nindent 8 -}}
