@@ -1,3 +1,4 @@
+{{- if eq .Release.Namespace "user-management" }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -47,3 +48,4 @@ spec:
             name: secret-engine
       restartPolicy: Never
       serviceAccountName: job-sa
+{{- end }}
