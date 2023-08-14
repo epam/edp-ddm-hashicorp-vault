@@ -1,0 +1,19 @@
+{{- if eq .Release.Namespace "user-management" }}
+apiVersion: v1.edp.epam.com/v1
+kind: EDPComponent
+metadata:
+  annotations:
+    control-plane-console/description: "Інструмент для безпечного управління секретами та захисту доступу до конфіденційної інформації в обчислювальних середовищах."
+    control-plane-console/display-name: "Сервіс управління секретами та шифруванням (Vault)"
+    control-plane-console/display-order: "5"
+    control-plane-console/operational-zone: "platform-operational-zone"
+    control-plane-console/platform-only: "true"
+  name: {{ .Chart.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  icon: >-
+   PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNTYiIHZpZXdCb3g9IjAgMCA1NiA1NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIgMkwyNy45MDU4IDUyLjQyN0w1NCAySDJaTTIzLjg3OSAyMi4wMkgxOS43NTE1VjE3Ljg5MjVIMjMuODc5VjIyLjAyWk0yMy44NzkgMTUuODI1NUgxOS43NTE1VjExLjcwMTNIMjMuODc5VjE1LjgyNTVaTTMwLjA2NyAyOC4yMDhIMjUuOTM5NVYyNC4wODA1SDMwLjA2N1YyOC4yMDhaTTMwLjA2NyAyMi4wMTY4SDI1LjkzOTVWMTcuODkyNUgzMC4wNjdWMjIuMDE2OFpNMzAuMDY3IDE1LjgyNTVIMjUuOTM5NVYxMS43MDEzSDMwLjA2N1YxNS44MjU1Wk0zNi4yMjI1IDIyLjAxNjhIMzIuMDk1VjE3Ljg5MjVIMzYuMjIyNVYyMi4wMTY4Wk0zMi4wOTUgMTUuODI1NVYxMS43MDEzSDM2LjIyMjVWMTUuODI1NUgzMi4wOTVaIiBmaWxsPSIjRkZEODE0Ii8+Cjwvc3ZnPg==
+  type: vault
+  url: "https://{{ .Release.Name }}-{{ .Release.Namespace }}.{{ .Values.global.dnsWildcard }}"
+  visible: true
+{{- end }}
