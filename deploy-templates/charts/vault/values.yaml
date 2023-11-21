@@ -222,7 +222,7 @@ server:
 
   # Configure the Update Strategy Type for the StatefulSet
   # See https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
-  updateStrategyType: "OnDelete"
+  updateStrategyType: "RollingUpdate"
 
   # Configure the logging verbosity for the Vault server.
   # Supported log levels include: trace, debug, info, warn, error

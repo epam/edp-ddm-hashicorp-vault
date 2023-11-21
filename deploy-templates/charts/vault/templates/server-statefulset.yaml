@@ -65,7 +65,10 @@ spec:
       {{- end }}
       containers:
         - name: vault
-          {{ template "vault.resources" . }}
+          {{- if .Values.global.container.requestsLimitsEnabled }}
+          resources:
+            {{- toYaml .Values.global.registry.hashicorpVault.container.resources | nindent 12 }}
+          {{- end }}
           image: {{ template "imageRegistry" . -}} {{ .Values.server.image.repository }}:{{ .Values.server.image.tag | default "latest" }}
           imagePullPolicy: {{ .Values.server.image.pullPolicy }}
           command:
